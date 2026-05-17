@@ -7,6 +7,24 @@ struct ContentView: View {
     @State private var message: String = ""
     @State private var isJailbroken: String = "?"
     
+    // Секреты для проверки GitLeaks и Semgrep
+    let awsAccessKey = "AKIAIOSFODNN7EXAMPLE"
+    let awsSecretKey = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+    let githubToken = "ghp_1234567890abcdefghijklmnopqrstuv"
+    let password = "SuperSecret123!"
+    let apiKey = "sk_live_abc123def456ghi789jkl"
+    let slackWebhook = "https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"
+    let jwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0t5M6Q"
+    let privateKey = """
+    -----BEGIN RSA PRIVATE KEY-----
+    MIICXAIBAAKBgQCqGKukO1De7zhZj6+H0qtjTkVxwTCpvKe4eCZ0FPqri0cb2JZfXJ/DgYSF6vUp
+    wmJG8wVQZKjeGcjDOL5UlsuusFncCzWBQ7RKNUSesmQRMSGkVb1/3j+skZ6UtW+5u09lHNsj6tQ5
+    1s1SPrCBkedbNf0Tp0GbMJDyR4e9T04ZZwIDAQABAoGAFijko56+qGyN8M0RVyaRAXz++xTqHBLh
+    3tx4VgMtrQ+WEgCjhoTwo23KMBAuJGSYnRmoBZM3lMfTKevIkAidPExvYCdm5dYq3XToLkkLv5L2
+    pIIVOFMDG+KESnAFV7l2c+cnzRMW0+b6f8mR1CJzZuxVLL6h02a6YRAZ
+    -----END RSA PRIVATE KEY-----
+    """
+    
     var body: some View {
         VStack(spacing: 20) {
             Text("Threat Modeling Demo")
