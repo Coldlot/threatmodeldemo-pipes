@@ -21,6 +21,13 @@ jobs:
         with:
           config-path: .gitleaks.toml
 
+      - name: Upload Dependency Check report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report
+          path: reports
+
   build:
     name: Build IPA
     runs-on: macos-latest
