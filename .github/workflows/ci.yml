@@ -38,6 +38,69 @@ jobs:
           name: threatmodeldemo-ipa
           path: ThreatModelDemo.ipa
 
+  mobsf:
+    name: MobSF Analysis
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download IPA artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: threatmodeldemo-ipa
+
+      - name: Start MobSF and get API key
+        run: |
+          docker run -d -p 8888:8000 \
+            -e MOBSF_DISABLE_AUTHENTICATION=1 \
+            -e MOBSF_API_KEY=threatmodeldemo-ci-key \
+            --name mobsf \
+            opensecurity/mobile-security-framework-mobsf:latest
+          echo "Waiting for MobSF to be ready..."
+          until curl -s http://127.0.0.1:8888; do sleep 5; done
+          echo "MobSF is ready!"
+          echo "APIKEY=threatmodeldemo-ci-key" >> $GITHUB_ENV
+
+      - name: Upload IPA to MobSF
+        run: |
+          RESPONSE=$(curl -s -X POST http://localhost:8888/api/v1/upload \
+            -H "Authorization: threatmodeldemo-ci-key" \
+            -F "file=@ThreatModelDemo.ipa")
+          echo "Upload response: $RESPONSE"
+          FILEHASH=$(echo "$RESPONSE" | grep -o '"hash": "[^"]*"' | cut -d'"' -f4)
+          echo "FILEHASH=$FILEHASH" >> $GITHUB_ENV
+
+      - name: Run MobSF scan
+        run: |
+          RESPONSE=$(curl -s -X POST http://localhost:8888/api/v1/scan \
+            -H "Authorization: threatmodeldemo-ci-key" \
+            -d "hash=$FILEHASH")
+          echo "Scan response: $RESPONSE"
+
+      - name: Wait for scan to complete and download report
+        run: |
+          echo "Waiting for scan to complete..."
+          for i in {1..30}; do
+            STATUS=$(curl -s http://localhost:8888/api/v1/scan_status?hash=$FILEHASH \
+              -H "Authorization: threatmodeldemo-ci-key")
+            echo "Scan status: $STATUS"
+            if echo "$STATUS" | grep -q '"status":"completed"'; then
+              echo "Scan completed!"
+              break
+            fi
+            sleep 10
+          done
+          curl -X POST --url http://localhost:8888/api/v1/download_pdf \
+            --data "hash=$FILEHASH" \
+            -H "Authorization: threatmodeldemo-ci-key" \
+            --output mobsf_report.pdf
+          echo "Report downloaded, size: $(wc -c < mobsf_report.pdf) bytes"
+
+      - name: Upload MobSF report as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobsf-report-pdf
+          path: mobsf_report.pdf
+
   semgrep:
     name: Semgrep SAST
     runs-on: ubuntu-latest
