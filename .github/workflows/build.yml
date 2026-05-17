@@ -1,0 +1,39 @@
+name: Build iOS App
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  build:
+    name: Build IPA
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build unsigned IPA
+        run: |
+          xcodebuild build \
+            -project ThreatModelDemo.xcodeproj \
+            -scheme ThreatModelDemo \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            -derivedDataPath ./build
+
+      - name: Create Payload and IPA
+        run: |
+          mkdir -p Payload
+          cp -r ./build/Build/Products/Debug-iphonesimulator/ThreatModelDemo.app Payload/
+          zip -r ThreatModelDemo.ipa Payload
+
+      - name: Upload IPA as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: threatmodeldemo-ipa
+          path: ThreatModelDemo.ipa
