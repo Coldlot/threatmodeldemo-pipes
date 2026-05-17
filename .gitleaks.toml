@@ -1,0 +1,9 @@
+title = "GitLeaks config for ThreatModelDemo"
+
+[allowlist]
+description = "Allowlisted files and patterns"
+paths = [
+    ".github/workflows/ci.yml",
+    ".*\\.md$",
+    ".gitignore"
+]
