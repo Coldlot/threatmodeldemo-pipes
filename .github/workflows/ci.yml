@@ -73,3 +73,36 @@ jobs:
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: semgrep.sarif
+
+  codeql:
+    name: CodeQL Analysis
+    runs-on: macos-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: swift
+      - name: Build Swift project
+        run: |
+          xcodebuild build \
+            -project ThreatModelDemo.xcodeproj \
+            -scheme ThreatModelDemo \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          output: codeql-results
+      - name: Upload CodeQL SARIF as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: codeql-results
+          path: codeql-results
