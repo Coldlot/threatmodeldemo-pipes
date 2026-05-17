@@ -1,4 +1,4 @@
-name: Build iOS App
+name: CI Pipeline
 
 on:
   push:
@@ -37,3 +37,39 @@ jobs:
         with:
           name: threatmodeldemo-ipa
           path: ThreatModelDemo.ipa
+
+  semgrep:
+    name: Semgrep SAST
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+      actions: read
+    container:
+      image: returntocorp/semgrep
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Semgrep
+        run: |
+          semgrep scan \
+            --config=auto \
+            --config=p/swift \
+            --config=p/secrets \
+            --config=p/owasp-top-ten \
+            --error \
+            --sarif > semgrep.sarif
+
+      - name: Upload SARIF as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-results
+          path: semgrep.sarif
+
+      - name: Upload SARIF to GitHub Security Dashboard
+        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: semgrep.sarif
